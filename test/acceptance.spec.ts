@@ -352,4 +352,49 @@ d('critérios de aceite (PostgreSQL + PostGIS)', () => {
     expect((await api(`/v1/sync/events/${event.id}/receipt`)).status).toBe(401);
   });
 
+  describe('Execução online de tarefas', () => {
+    async function taskFromManualInspection() {
+      const event=inspection({payload:{notes:'Teste tarefa online',captureMode:'manual'}});
+      await sync([event]);
+      const task=(await db.query('SELECT id,organization_id FROM tasks WHERE source_event_id=$1',[event.id])).rows[0];
+      return {event,task};
+    }
+    it('iniciar e concluir audita as mudanças e conserva o evento de origem', async () => {
+      const {event,task}=await taskFromManualInspection();
+      const original=(await db.query('SELECT * FROM sync_events WHERE id=$1',[event.id])).rows[0];
+      for (const status of ['em_progresso','concluida']) {
+        const r=await api(`/v1/tasks/${task.id}/status`,{method:'PATCH',token:tokenOp,body:{status}});
+        expect(r.status).toBe(200); expect(r.json).toEqual({id:task.id,status});
+      }
+      const after=(await db.query('SELECT * FROM sync_events WHERE id=$1',[event.id])).rows[0];
+      expect(after).toEqual(original);
+      const audits=(await db.query("SELECT details FROM audit_log WHERE entity_id=$1 AND action='task.status' ORDER BY id",[task.id])).rows;
+      expect(audits.map(a=>a.details)).toEqual([{previousStatus:'pendente',status:'em_progresso'},{previousStatus:'em_progresso',status:'concluida'}]);
+    });
+    it('repetição concorrente não duplica o histórico da mesma mudança', async () => {
+      const {task}=await taskFromManualInspection();
+      const results=await Promise.all([1,2].map(()=>api(`/v1/tasks/${task.id}/status`,{method:'PATCH',token:tokenOp,body:{status:'em_progresso'}})));
+      expect(results.map(r=>r.status)).toEqual([200,200]);
+      expect((await db.query("SELECT count(*)::int n FROM audit_log WHERE entity_id=$1 AND action='task.status'",[task.id])).rows[0].n).toBe(1);
+    });
+    it('auditor não modifica e outra organização não acessa a tarefa', async () => {
+      const {task}=await taskFromManualInspection();
+      const auditor=(await api('/v1/auth/login',{method:'POST',body:{email:'auditor@demo.aerogaze',password:'aerogaze-dev-123'}})).json.accessToken;
+      expect((await api(`/v1/tasks/${task.id}/status`,{method:'PATCH',token:auditor,body:{status:'concluida'}})).status).toBe(403);
+      expect((await api(`/v1/tasks/${task.id}/status`,{method:'PATCH',token:tokenOutraOrg,body:{status:'concluida'}})).status).toBe(404);
+      expect((await db.query('SELECT status FROM tasks WHERE id=$1',[task.id])).rows[0].status).toBe('pendente');
+    });
+    it('falha na auditoria faz rollback do status da tarefa', async () => {
+      const {task}=await taskFromManualInspection();
+      await db.query(`CREATE FUNCTION test_task_audit_failure() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN IF NEW.entity_id='${task.id}' AND NEW.action='task.status' THEN RAISE EXCEPTION 'test audit unavailable'; END IF; RETURN NEW; END $$`);
+      await db.query('CREATE TRIGGER test_task_audit_failure BEFORE INSERT ON audit_log FOR EACH ROW EXECUTE FUNCTION test_task_audit_failure()');
+      try {
+        expect((await api(`/v1/tasks/${task.id}/status`,{method:'PATCH',token:tokenOp,body:{status:'concluida'}})).status).toBe(500);
+        expect((await db.query('SELECT status FROM tasks WHERE id=$1',[task.id])).rows[0].status).toBe('pendente');
+      } finally {
+        await db.query('DROP TRIGGER test_task_audit_failure ON audit_log; DROP FUNCTION test_task_audit_failure()');
+      }
+    });
+  });
+
 });

@@ -92,23 +92,25 @@ export class OperationsController {
   }
 
   @Patch('tasks/:id/status')
+  @Roles('operador', 'veterinario', 'gerente', 'administrador')
   async setTaskStatus(
     @CurrentUser() user: AuthUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: TaskStatusDto,
   ) {
-    const { rows } = await this.db.query(
-      `UPDATE tasks SET status = $3
-        WHERE id = $1 AND organization_id = $2 AND ($4::uuid IS NULL OR farm_id = $4)
-        RETURNING id, status`,
-      [id, user.organizationId, dto.status, user.farmId],
-    );
-    if (!rows[0]) throw new NotFoundException('tarefa não encontrada');
-    await this.db.query(
-      `INSERT INTO audit_log (organization_id, user_id, action, entity, entity_id, details)
-       VALUES ($1,$2,'task.status','task',$3,$4)`,
-      [user.organizationId, user.id, id, JSON.stringify({ status: dto.status })],
-    );
-    return rows[0];
+    return this.db.tx(async client => {
+      const current = await client.query(
+        `SELECT id,status FROM tasks WHERE id=$1 AND organization_id=$2
+         AND ($3::uuid IS NULL OR farm_id=$3) FOR UPDATE`,
+        [id,user.organizationId,user.farmId]);
+      if (!current.rows[0]) throw new NotFoundException('tarefa não encontrada');
+      if (current.rows[0].status === dto.status) return current.rows[0];
+      const { rows } = await client.query('UPDATE tasks SET status=$2 WHERE id=$1 RETURNING id,status', [id,dto.status]);
+      await client.query(
+        `INSERT INTO audit_log (organization_id, user_id, action, entity, entity_id, details)
+         VALUES ($1,$2,'task.status','task',$3,$4)`,
+        [user.organizationId,user.id,id,JSON.stringify({previousStatus:current.rows[0].status,status:dto.status})]);
+      return rows[0];
+    });
   }
 }

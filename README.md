@@ -127,3 +127,7 @@ Validação em 12/10/2026: build aprovado e **55 testes passando** em PostgreSQL
 ### Cadastro explícito do aparelho Flutter
 
 `POST /v1/sync/devices` com `{farmId,deviceId}` (prefixo flutter- e UUID v4) exige gerente/administrador e acesso à fazenda. É idempotente, audita a criação e recusa identificadores de outra organização/fazenda ou revogados. Não altera `AUTO_REGISTER_DEVICES`. O app oferece a ação no Scout e preserva os eventos recusados para revalidação após cadastro.
+
+### Tarefas online
+
+`PATCH /v1/tasks/:id/status` aceita operador, veterinário, gerente e administrador; auditor permanece somente leitura. Status e audit_log são gravados na mesma transação; repetir o mesmo status não duplica o histórico. A inspeção de origem não é alterada. Ações mobile são online; execução offline ainda não está implementada.
