@@ -28,6 +28,8 @@ test('resposta perdida reenvia os mesmos bytes e conserva assinatura persistida'
   const service=new SolanaService(db as unknown as DatabaseService);
   jest.spyOn(service.connection,'getGenesisHash').mockResolvedValue('EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG');
   jest.spyOn(service as any,'wallet').mockReturnValue(Keypair.generate());
+  jest.spyOn(service.connection,'getBalance').mockResolvedValue(1000000000);
+  jest.spyOn(service.connection,'getFeeForMessage').mockResolvedValue({context:{slot:1},value:5000});
   jest.spyOn(service.connection,'getLatestBlockhash').mockResolvedValue({blockhash:'11111111111111111111111111111111',lastValidBlockHeight:1000});
   jest.spyOn(service.connection,'getParsedTransaction').mockResolvedValue(null);
   jest.spyOn(service.connection,'getBlockHeight').mockResolvedValue(900);
@@ -36,4 +38,13 @@ test('resposta perdida reenvia os mesmos bytes e conserva assinatura persistida'
   expect(saved.signature).toBeTruthy();await service.submit(saved);
   expect(Buffer.from(send.mock.calls[0][0]).equals(Buffer.from(send.mock.calls[1][0]))).toBe(true);
   expect(db.query).toHaveBeenCalledTimes(1);
+});
+test('faucet pendente não prepara assinatura nem grava transação expirada',async()=>{
+  const db={query:jest.fn()};const service=new SolanaService(db as unknown as DatabaseService);
+  jest.spyOn(service.connection,'getGenesisHash').mockResolvedValue('EtWTRABZaYq6iMfeYKouRu166VU2xqa1wcaWoxPkrZBG');
+  jest.spyOn(service as any,'wallet').mockReturnValue(Keypair.generate());
+  jest.spyOn(service.connection,'getBalance').mockResolvedValue(0);
+  const send=jest.spyOn(service.connection,'sendRawTransaction');
+  await expect(service.submit({event_id:'event',event_hash:'a'.repeat(64)})).rejects.toThrow('Aguardando SOL');
+  expect(send).not.toHaveBeenCalled();expect(db.query).not.toHaveBeenCalled();
 });

@@ -63,9 +63,13 @@ export class SolanaService implements OnApplicationBootstrap,OnApplicationShutdo
       }
     }else{
       const wallet=this.wallet();
+      const balance=await this.connection.getBalance(wallet.publicKey,'confirmed');
+      if(balance<10000)throw new ServiceUnavailableException('Aguardando SOL de teste do faucet');
       const latest=await this.connection.getLatestBlockhash('confirmed');
       const tx=new Transaction({feePayer:wallet.publicKey,blockhash:latest.blockhash,lastValidBlockHeight:latest.lastValidBlockHeight});
       tx.add(new TransactionInstruction({programId:new PublicKey(MEMO_PROGRAM),keys:[{pubkey:wallet.publicKey,isSigner:true,isWritable:false}],data:Buffer.from(receiptMemo(row.event_hash))}));
+      const fee=await this.connection.getFeeForMessage(tx.compileMessage(),'confirmed');
+      if(fee.value===null||balance<fee.value)throw new ServiceUnavailableException('Saldo de teste insuficiente para a taxa');
       tx.sign(wallet);
       const signature=(require('bs58') as {encode(b:Uint8Array):string}).encode(tx.signature!);
       const raw=tx.serialize().toString('base64');

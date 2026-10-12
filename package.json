@@ -51,7 +51,11 @@
     "transform": {
       "^.+\\.ts$": "ts-jest"
     },
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/.tools/",
+      "<rootDir>/web/"
+    ]
   },
   "overrides": {
     "rpc-websockets": "9.3.6"
