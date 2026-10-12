@@ -1,0 +1,46 @@
+# Desenvolvimento local.
+#   docker compose up -d db            -> só o banco (PostgreSQL 16 + PostGIS 3.4); API roda com npm run start:dev
+#   docker compose --profile full up   -> banco + API + worker em containers (simula a produção)
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: aerogaze
+      POSTGRES_PASSWORD: aerogaze_dev
+      POSTGRES_DB: aerogaze
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aerogaze -d aerogaze"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    profiles: ["full"]
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment: &app_env
+      NODE_ENV: development
+      PORT: "3000"
+      DATABASE_URL: postgresql://aerogaze:aerogaze_dev@db:5432/aerogaze
+      JWT_SECRET: troque-isto-por-um-valor-longo-e-aleatorio-de-teste
+      AUTO_REGISTER_DEVICES: "true"
+      ANCHOR_MODE: mock
+    ports:
+      - "3000:3000"
+
+  worker:
+    profiles: ["full"]
+    build: .
+    depends_on:
+      - api
+    environment: *app_env
+    command: ["node", "dist/worker"]
+
+volumes:
+  pgdata:
