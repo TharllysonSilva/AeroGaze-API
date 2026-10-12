@@ -397,4 +397,29 @@ d('critérios de aceite (PostgreSQL + PostGIS)', () => {
     });
   });
 
+  describe('Cenário operacional simulado',()=>{
+    it('falha cria tarefa, retry não duplica e reparo resolve sem alterar evento original',async()=>{
+      const path=`/v1/demo/farms/${farmId}`;
+      const id=randomUUID();const body={id,command:'irrigation.fail'};
+      const first=await api(path+'/actions',{method:'POST',token:tokenOp,body});
+      expect(first.status).toBe(201);expect(first.json.state.irrigation.status).toBe('falha');expect(first.json.taskId).toBeTruthy();
+      const duplicate=await api(path+'/actions',{method:'POST',token:tokenOp,body});
+      expect(duplicate.json.duplicate).toBe(true);expect(duplicate.json.taskId).toBe(first.json.taskId);
+      expect((await api(path+'/actions',{method:'POST',token:tokenOp,body:{id,command:'drone.dispatch'}})).status).toBe(409);
+      const original=(await db.query('SELECT * FROM sync_events WHERE id=$1',[id])).rows[0];
+      expect((await api(path+'/actions',{method:'POST',token:tokenOp,body:{id:randomUUID(),command:'irrigation.start'}})).status).toBe(409);
+      const repair=await api(path+'/actions',{method:'POST',token:tokenOp,body:{id:randomUUID(),command:'irrigation.repair'}});
+      expect(repair.status).toBe(201);
+      expect((await db.query('SELECT status FROM tasks WHERE id=$1',[first.json.taskId])).rows[0].status).toBe('concluida');
+      expect((await db.query('SELECT * FROM sync_events WHERE id=$1',[id])).rows[0]).toEqual(original);
+      const read=await api(path,{token:tokenOp});expect(read.json.state.version).toBe(2);expect(read.json.telemetry.simulated).toBe(true);
+      expect((await db.query('SELECT count(*)::int AS n FROM outbox WHERE aggregate_id=$1',[id])).rows[0].n).toBe(1);
+    });
+    it('cenário isola organizações e auditor não executa comandos',async()=>{
+      const path=`/v1/demo/farms/${farmId}`;
+      expect((await api(path,{token:tokenOutraOrg})).status).toBe(404);
+      const auditor=(await api('/v1/auth/login',{method:'POST',body:{email:'auditor@demo.aerogaze',password:'aerogaze-dev-123'}})).json.accessToken;
+      expect((await api(path+'/actions',{method:'POST',token:auditor,body:{id:randomUUID(),command:'drone.dispatch'}})).status).toBe(403);
+    });
+  });
 });

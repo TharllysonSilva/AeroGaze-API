@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: aerogaze-web
+    runtime: docker
+    rootDir: web
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /login
+    envVars:
+      - key: API_URL
+        value: https://aerogaze-api.onrender.com
+      - key: NODE_ENV
+        value: production

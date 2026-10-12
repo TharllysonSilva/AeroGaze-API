@@ -8,9 +8,11 @@ import { ProofHttpModule } from './proof/proof-http.module';
 import { ProofModule } from './proof/proof.module';
 import { RulesModule } from './rules/rules.module';
 import { SyncModule } from './sync/sync.module';
+import { DemoModule } from './demo/demo.controller';
+import { SolanaModule } from './solana/solana.controller';
 
 @Module({
-  imports: [DatabaseModule, AuthModule, FarmsModule, RulesModule, ProofModule, ProofHttpModule, SyncModule, OperationsModule],
+  imports: [DatabaseModule, AuthModule, FarmsModule, RulesModule, ProofModule, ProofHttpModule, SyncModule, OperationsModule, DemoModule, SolanaModule],
   controllers: [HealthController],
 })
 export class AppModule {}

@@ -1,0 +1,17 @@
+@import '../styles/tokens.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  background: rgb(var(--c-surface));
+  color: rgb(var(--c-on-surface));
+  -webkit-font-smoothing: antialiased;
+}
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-body-md-size);
+}
+::selection {
+  background: rgb(var(--c-primary-container) / 0.35);
+}
