@@ -1,6 +1,6 @@
 import { assertAllowedEvmChain } from './evm-network';
 import { Injectable } from '@nestjs/common';
-import { Contract, JsonRpcProvider, Wallet, id as keccakId } from 'ethers';
+import { Contract, FetchRequest, JsonRpcProvider, Wallet, id as keccakId } from 'ethers';
 import { AppEnv } from '../config/env';
 import { AnchorInput, AnchorReceipt, AnchorService, OnChainAnchor } from './anchor.service';
 
@@ -22,7 +22,9 @@ export class EvmAnchorService implements AnchorService {
   constructor(env: AppEnv) {
     assertAllowedEvmChain(env.evm.chainId);
     this.expectedChainId = env.evm.chainId;
-    this.provider = new JsonRpcProvider(env.evm.rpcUrl);
+    const request = new FetchRequest(env.evm.rpcUrl);
+    request.timeout = 15_000;
+    this.provider = new JsonRpcProvider(request);
     const wallet = new Wallet(env.evm.privateKey, this.provider);
     this.contract = new Contract(env.evm.registryAddress, ABI, wallet);
   }

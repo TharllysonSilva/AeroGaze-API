@@ -7,3 +7,6 @@ coverage
 .env.*
 !.env.example
 *.bak
+.env.integration.local
+
+.tools/

@@ -305,4 +305,17 @@ d('critérios de aceite (PostgreSQL + PostGIS)', () => {
       expect(pend.last_error).toMatch(/rede indisponível/);
     });
   });
+  it('inspeção manual tem recibo com tarefa, lote e proteção contra outra organização', async () => {
+    const event = inspection({ payload: { notes: 'Revisão manual', captureMode: 'manual' } });
+    expect((await sync([event])).json.acks[0].status).toBe('accepted');
+    const before = await api(`/v1/sync/events/${event.id}/receipt`, { token: tokenOp });
+    expect(before.status).toBe(200); expect(before.json.tasks).toHaveLength(1);
+    expect(before.json.tasks[0].title).toBe('Revisão humana de inspeção'); expect(before.json.batch).toBeNull();
+    await app.get(BatchService).buildBatches();
+    const receipt = await api(`/v1/sync/events/${event.id}/receipt`, { token: tokenOp });
+    expect(receipt.json.batch.id).toBeDefined(); expect(receipt.json.batch.status).toBe('pendente');
+    expect((await api(`/v1/sync/events/${event.id}/receipt`, { token: tokenOutraOrg })).status).toBe(404);
+    expect((await api(`/v1/sync/events/${event.id}/receipt`)).status).toBe(401);
+  });
+
 });

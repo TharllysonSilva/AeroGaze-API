@@ -46,7 +46,7 @@ export class OperationsController {
   async tasks(@CurrentUser() user: AuthUser, @Query() q: ListQuery) {
     const farm = await this.resolveFarm(user, q.farmId);
     const { rows } = await this.db.query(
-      `SELECT id, farm_id, plot_id, alert_id, title, description, priority, status, created_at
+      `SELECT id, farm_id, plot_id, alert_id, source_event_id, title, description, priority, status, created_at
          FROM tasks
         WHERE organization_id = $1 AND ($2::uuid IS NULL OR farm_id = $2) AND ($3::text IS NULL OR status = $3)
         ORDER BY created_at DESC LIMIT 200`,

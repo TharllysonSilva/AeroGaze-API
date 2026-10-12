@@ -105,3 +105,21 @@ Cada lote vira UMA transação na rede. `BATCH_MIN_EVENTS` e `BATCH_MAX_AGE_MIN`
 
 `ANCHOR_MODE=mock` gera recibo **simulado**: a raiz só existe neste banco, então não prova nada para terceiros.
 Para prova real, use `ANCHOR_MODE=evm` com o contrato do pacote `aerogaze-chain`.
+
+## Integração Flutter → Comando → prova
+
+`inspection.recorded` com `payload.captureMode="manual"` gera uma tarefa de revisão humana sem atribuir resultado a IA. A ingestão continua idempotente por UUID e exige a fazenda autorizada no token.
+
+`GET /v1/sync/events/:eventId/receipt` exige autenticação e retorna `{eventId, ingestion, tasks, batch}`. `batch=null` significa que o worker ainda não formou o lote; ingestão e ancoragem são estados separados. A consulta valida organização e fazenda antes de expor o recibo. `/v1/tasks` inclui `source_event_id` para correlacionar a tarefa exibida no Comando.
+
+A verificação pública continua em `/v1/verify/:batchId`. Com RPC indisponível, `onChain.checked=false` não confirma a rede e não significa adulteração. A UI deve exigir `checked=true`, `matches=true`, `revoked=false`, modo EVM e status ancorado para mostrar confirmação externa. O transporte RPC usa timeout de 15 segundos por requisição ([FetchRequest](https://docs.ethers.org/v6/api/utils/fetching/)).
+
+### Ensaio local isolado
+
+O helper `node scripts/start-integration-api.cjs` inicia a porta 3302 com banco **aerogaze_android_test** em **127.0.0.1:55432**, credenciais descartáveis e ancoragem **mock**. Ele valida o alvo antes de migrar/seed. É exclusivo de desenvolvimento; não configura ancoragem real nem substitui a validação em testnet.
+
+### Nova conta de integração
+
+`scripts/provision-integration-user.cjs` confere o banco Neon pela fazenda/prova já publicada. Sem argumentos, só confere. `--create` cadastra `gerente.integracao@demo.aerogaze` como gerente restrito à fazenda e gera senha aleatória no arquivo `.env.integration.local`, ignorado pelo Git. Contas existentes não são sobrescritas. A conexão do banco e a senha nunca são impressas.
+
+Validação em 12/10/2026: build aprovado e **55 testes passando** em PostgreSQL/PostGIS exclusivo de teste, incluindo isolamento do recibo, inspeção manual, queda/retorno do RPC e verificação pública. Não executar os testes de aceite sobre o banco publicado.

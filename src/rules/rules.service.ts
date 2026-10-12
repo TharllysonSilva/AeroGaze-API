@@ -38,6 +38,14 @@ export class RulesService {
 
   // RG-IA-01: inferência local (TFLite) -> alerta e tarefa, com saída "inconclusivo" -> revisão humana
   private async inspectionRule(client: PoolClient, ctx: RuleContext): Promise<RuleOutcome> {
+    if (ctx.payload?.captureMode === 'manual') {
+      await this.createTask(client, ctx, null, {
+        title: 'Revisão humana de inspeção',
+        description: 'Inspeção registrada manualmente, sem inferência de IA. Avaliar a observação em campo.',
+        priority: 'media',
+      });
+      return { alerts: 0, tasks: 1 };
+    }
     const ai = ctx.payload?.ai as { label?: string; confidence?: number; modelVersion?: string } | undefined;
     if (!ai?.label) return { alerts: 0, tasks: 0 };
 
