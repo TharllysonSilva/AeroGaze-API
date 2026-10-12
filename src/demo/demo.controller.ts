@@ -47,7 +47,8 @@ export class DemoController {
         ON CONFLICT(farm_id) DO UPDATE SET state=EXCLUDED.state,updated_at=now()`,[farmId,user.organizationId,JSON.stringify(state)]);
       const device=`demo-${farmId}`;
       await client.query('INSERT INTO devices(id,organization_id,farm_id,name) VALUES($1,$2,$3,$4) ON CONFLICT(id) DO NOTHING',[device,user.organizationId,farmId,'Simulador de operação do hackathon']);
-      const payload={simulated:true,command:dto.command,assetId:dto.target??'IRR-01',label,scenarioVersion:state.version};
+      const asset=dto.target??(dto.command.startsWith('drone.')?'AERO-01':dto.command.startsWith('stock.')?'ESTOQUE-01':dto.command.startsWith('support.')?'COMANDO-01':dto.command.startsWith('pest.')?'CULTURA-01':'IRR-01');
+      const payload={simulated:true,command:dto.command,assetId:asset,label,scenarioVersion:state.version};
       await client.query(`INSERT INTO sync_events(id,organization_id,farm_id,device_id,type,schema_version,occurred_at,payload)
         VALUES($1,$2,$3,$4,'demo.action_recorded',1,now(),$5)`,[dto.id,user.organizationId,farmId,device,JSON.stringify(payload)]);
       await client.query("INSERT INTO outbox(topic,aggregate_id,data) VALUES('event.accepted',$1,$2)",[dto.id,JSON.stringify({farmId,organizationId:user.organizationId})]);

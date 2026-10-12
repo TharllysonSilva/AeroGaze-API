@@ -49,17 +49,18 @@ export function scenarioTelemetry(state: Scenario, plots: any[], now = Date.now(
   const rings=plots.map(p=>p.boundary?.coordinates?.[0]).filter(Boolean);
   const centers=rings.map(r=>({lon:r.reduce((s:number,c:number[])=>s+c[0],0)/r.length,lat:r.reduce((s:number,c:number[])=>s+c[1],0)/r.length}));
   // Pontos fictícios calculados no interior aproximado da área cadastrada, nunca GPS do aparelho.
-  const position=(i:number,phase=i)=>{
+  const position=(i:number,phase=i,moving=true)=>{
     const ring=rings[i%Math.max(1,rings.length)];const center=centers[i%Math.max(1,centers.length)];
     if(!ring||!center)return null;
     const spanLon=Math.max(...ring.map((c:number[])=>c[0]))-Math.min(...ring.map((c:number[])=>c[0]));
     const spanLat=Math.max(...ring.map((c:number[])=>c[1]))-Math.min(...ring.map((c:number[])=>c[1]));
-    return {lon:center.lon+Math.sin(now/30000+phase)*spanLon*.12,lat:center.lat+Math.cos(now/30000+phase)*spanLat*.12};
+    const time=moving?now/30000:0;
+    return {lon:center.lon+Math.sin(time+phase)*spanLon*.12,lat:center.lat+Math.cos(time+phase)*spanLat*.12};
   };
   return {sampledAt:new Date(now).toISOString(),simulated:true,
     points:[...state.animals.map((a,i)=>({id:a.id,kind:'animal',label:a.id,status:a.status,...position(a.plot,i)})),
-      {id:'AERO-01',kind:'drone',label:'AERO-01',status:state.drone.status,...position(0)},
-      {id:'IRR-01',kind:'irrigacao',label:'IRR-01',status:state.irrigation.status,...position(1)}],
+      {id:'AERO-01',kind:'drone',label:'AERO-01',status:state.drone.status,...position(0,0,state.drone.status==='missao')},
+      {id:'IRR-01',kind:'irrigacao',label:'IRR-01',status:state.irrigation.status,...position(1,1,false)}],
     series:Array.from({length:12},(_,i)=>({at:new Date(now-(11-i)*300000).toISOString(),
       moisture:Math.round(state.irrigation.moisture+Math.sin(i)*2),temperature:Math.round((26+Math.sin(i/2)*2)*10)/10,
       pressure:state.irrigation.pressure,flow:state.irrigation.flow}))};

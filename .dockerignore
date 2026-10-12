@@ -1,5 +1,13 @@
 node_modules
 dist
 .env
+.env.*
+!.env.example
+.tools
+**/node_modules
+**/.next
+**/.tools
+*.log
+web
 .git
 coverage
