@@ -25,6 +25,10 @@ const rect = ([x1, y1, x2, y2]) => ({
 async function main() {
   loadDotEnv();
   const password = process.env.SEED_PASSWORD || 'aerogaze-dev-123';
+  if (process.env.NODE_ENV === 'production' &&
+      (!process.env.SEED_PASSWORD || password === 'aerogaze-dev-123' || password.length < 16)) {
+    throw new Error('Em producao, configure SEED_PASSWORD propria com pelo menos 16 caracteres.');
+  }
   const client = new Client({ connectionString: process.env.DATABASE_URL });
   await client.connect();
 
@@ -76,7 +80,7 @@ async function main() {
     console.log('seed aplicado.');
     console.log(`  organização: ${org}`);
     console.log(`  fazenda:     ${farm}`);
-    console.log(`  usuários:    operador@/vet@/gerente@/auditor@/admin@demo.aerogaze  (senha: ${password})`);
+    console.log(`  usuários:    operador@/vet@/gerente@/auditor@/admin@demo.aerogaze`);
     console.log('  aparelho:    device-demo-01');
   } catch (err) {
     await client.query('ROLLBACK');
