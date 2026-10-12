@@ -124,6 +124,40 @@ d('critérios de aceite (PostgreSQL + PostGIS)', () => {
     expect((await api('/v1/auth/login', { method: 'POST', body: { email: 'operador@demo.aerogaze', password: 'errada-123' } })).status).toBe(401);
   });
 
+  describe('Cadastro explícito do Flutter', () => {
+    async function managerToken() {
+      return (await api('/v1/auth/login', { method: 'POST', body: { email: 'gerente@demo.aerogaze', password: 'aerogaze-dev-123' } })).json.accessToken;
+    }
+    it('gerente cadastra uma vez e audita, operador não cadastra', async () => {
+      const deviceId = 'flutter-' + randomUUID();
+      const body = { farmId, deviceId };
+      expect((await api('/v1/sync/devices', { method: 'POST', token: tokenOp, body })).status).toBe(403);
+      const token = await managerToken();
+      for (let i=0;i<2;i++) expect((await api('/v1/sync/devices', { method: 'POST', token, body })).status).toBe(200);
+      expect((await db.query("SELECT count(*)::int n FROM audit_log WHERE action='device.register' AND entity_id=$1", [deviceId])).rows[0].n).toBe(1);
+    });
+    it('cadastro não reativa aparelho revogado', async () => {
+      const token = await managerToken(); const deviceId = 'flutter-' + randomUUID(); const body = { farmId, deviceId };
+      await api('/v1/sync/devices', { method:'POST', token, body });
+      await db.query('UPDATE devices SET revoked_at=now() WHERE id=$1', [deviceId]);
+      expect((await api('/v1/sync/devices', { method:'POST', token, body })).status).toBe(403);
+      expect((await db.query('SELECT revoked_at FROM devices WHERE id=$1',[deviceId])).rows[0].revoked_at).not.toBeNull();
+    });
+    it('recusa fazenda alheia e identificador inválido', async () => {
+      const token = await managerToken();
+      const other = (await db.query("SELECT id FROM farms WHERE name='Fazenda da Outra Org'")).rows[0].id;
+      expect((await api('/v1/sync/devices', { method:'POST', token, body:{farmId:other,deviceId:'flutter-'+randomUUID()} })).status).toBe(404);
+      expect((await api('/v1/sync/devices', { method:'POST', token, body:{farmId,deviceId:'bad-device'} })).status).toBe(400);
+    });
+    it('não apropria identificador já vinculado a outra organização', async () => {
+      const token = await managerToken(); const deviceId='flutter-'+randomUUID();
+      const other = (await db.query("SELECT id,organization_id FROM farms WHERE name='Fazenda da Outra Org'")).rows[0];
+      await db.query('INSERT INTO devices (id,organization_id,farm_id) VALUES ($1,$2,$3)',[deviceId,other.organization_id,other.id]);
+      expect((await api('/v1/sync/devices', { method:'POST', token, body:{farmId,deviceId} })).status).toBe(403);
+      expect((await db.query('SELECT organization_id FROM devices WHERE id=$1',[deviceId])).rows[0].organization_id).toBe(other.organization_id);
+    });
+  });
+
   describe('Sincronização idempotente', () => {
     it('aceita, localiza o talhão, gera alerta + tarefa; reenviar NÃO duplica o efeito', async () => {
       const ev = inspection();

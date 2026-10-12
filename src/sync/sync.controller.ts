@@ -1,9 +1,9 @@
-import { Body, Controller, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { FarmScopeService } from '../farms/farm-scope.service';
 import { AuthUser } from '../auth/auth.types';
 import { CurrentUser, Roles } from '../auth/decorators';
-import { SyncRequestDto } from './sync.dto';
+import { RegisterFlutterDeviceDto, SyncRequestDto } from './sync.dto';
 import { SyncService } from './sync.service';
 
 @Controller('v1/sync')
@@ -13,6 +13,29 @@ export class SyncController {
     private readonly db: DatabaseService,
     private readonly scope: FarmScopeService,
   ) {}
+
+  /** Cadastro explícito; revogação e propriedade anteriores nunca são substituídas. */
+  @Post('devices')
+  @HttpCode(200)
+  @Roles('gerente', 'administrador')
+  async registerDevice(@CurrentUser() user: AuthUser, @Body() body: RegisterFlutterDeviceDto) {
+    await this.scope.assertFarm(user, body.farmId);
+    return this.db.tx(async client => {
+      const inserted = await client.query(
+        `INSERT INTO devices (id,organization_id,farm_id,name) VALUES ($1,$2,$3,'Flutter')
+         ON CONFLICT (id) DO NOTHING RETURNING id`, [body.deviceId,user.organizationId,body.farmId]);
+      const { rows } = await client.query('SELECT organization_id,farm_id,revoked_at FROM devices WHERE id=$1 FOR UPDATE', [body.deviceId]);
+      const device = rows[0];
+      if (!device || device.organization_id !== user.organizationId || device.farm_id !== body.farmId || device.revoked_at) {
+        throw new ForbiddenException('aparelho revogado ou vinculado a outro escopo');
+      }
+      if (inserted.rowCount) await client.query(
+        `INSERT INTO audit_log (organization_id,user_id,action,entity,entity_id,details)
+         VALUES ($1,$2,'device.register','device',$3,$4)`,
+        [user.organizationId,user.id,body.deviceId,JSON.stringify({farmId:body.farmId})]);
+      return { deviceId: body.deviceId, farmId: body.farmId, registered: true };
+    });
+  }
 
   /** Recibo autenticado: relaciona o UUID do aparelho às tarefas e ao lote, sem reenviar. */
   @Get('events/:eventId/receipt')

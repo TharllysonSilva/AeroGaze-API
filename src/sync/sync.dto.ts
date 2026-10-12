@@ -35,6 +35,12 @@ export class SyncEventDto {
   @IsObject() payload: Record<string, any>;
 }
 
+export class RegisterFlutterDeviceDto {
+  @IsUUID() farmId: string;
+  @IsString() @Matches(/^flutter-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/)
+  deviceId: string;
+}
+
 export class SyncRequestDto {
   @IsUUID() farmId: string;
   @IsString() @Length(3, 64) deviceId: string;

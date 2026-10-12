@@ -123,3 +123,7 @@ O helper `node scripts/start-integration-api.cjs` inicia a porta 3302 com banco 
 `scripts/provision-integration-user.cjs` confere o banco Neon pela fazenda/prova já publicada. Sem argumentos, só confere. `--create` cadastra `gerente.integracao@demo.aerogaze` como gerente restrito à fazenda e gera senha aleatória no arquivo `.env.integration.local`, ignorado pelo Git. Contas existentes não são sobrescritas. A conexão do banco e a senha nunca são impressas.
 
 Validação em 12/10/2026: build aprovado e **55 testes passando** em PostgreSQL/PostGIS exclusivo de teste, incluindo isolamento do recibo, inspeção manual, queda/retorno do RPC e verificação pública. Não executar os testes de aceite sobre o banco publicado.
+
+### Cadastro explícito do aparelho Flutter
+
+`POST /v1/sync/devices` com `{farmId,deviceId}` (prefixo flutter- e UUID v4) exige gerente/administrador e acesso à fazenda. É idempotente, audita a criação e recusa identificadores de outra organização/fazenda ou revogados. Não altera `AUTO_REGISTER_DEVICES`. O app oferece a ação no Scout e preserva os eventos recusados para revalidação após cadastro.
