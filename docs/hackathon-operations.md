@@ -29,3 +29,11 @@ API publicada precisa do commit com as migrações 002 e 003 antes de abrir as n
 - 74 testes API passaram. Imagens API e web passaram em Node 22 Alpine, com npm ci em build e runtime. O lockfile foi regenerado no Linux para conservar `jayson/node_modules/utf-8-validate@5.0.10`, omitido pelo lock produzido no Windows.
 - Imagem de produção web respondeu 200 em Comando, Telemetria, Frota, Análise, Logística, Download e Solana público, usando a API publicada. APK público respondeu 200 com 61.800.282 bytes. Publicação externa da web ainda aguardava criação do serviço Render nesta conferência.
 - SDK não assina recibos com saldo vazio; espera fundos fictícios sem criar uma assinatura que expire antes do faucet. Recibos antigos que expiraram durante a espera conservam a tentativa original e exigem revisão; não são resignados automaticamente.
+
+## Conferência final publicada
+
+Web publicada em https://aerogaze-web.onrender.com: login, Comando, Telemetria, Frota, Análise, Logística, Download e provas públicas responderam 200 usando a API publicada.
+
+Após publicar API `dbc16d1`, o usuário executou falha e reparo no AeroGaze Dev 0.2.0 do celular. API confirmou estado final `parada`, versão 8, eventos `1733fb24-ae98-41cc-9349-bad241301279` e `c6bbcc39-b018-4d2e-a91e-739a84c369e5` persistidos e tarefa `cce67074-c3a7-4c59-b987-4519dde042eb` concluída. Comando público respondeu 200 e exibiu o reparo e seu evento.
+
+Ambos entraram no [lote Base](https://aerogaze-web.onrender.com/verificar/bc783c4b-6592-4b06-8dc3-601bbe69961f), com valid/checked/matches=true e revoked=false. Os recibos Solana de [falha](https://aerogaze-web.onrender.com/solana/1733fb24-ae98-41cc-9349-bad241301279) e [reparo](https://aerogaze-web.onrender.com/solana/c6bbcc39-b018-4d2e-a91e-739a84c369e5) estão confirmados, checked/valid=true em Devnet. São recibos reais de operações explicitamente simuladas, sem alegação de execução física.
