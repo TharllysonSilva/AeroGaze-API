@@ -13,5 +13,5 @@ export function middleware(req: NextRequest) {
 
 // Rotas públicas: login, verificação por QR code, autenticação e arquivos estáticos
 export const config = {
-  matcher: ['/((?!login|verificar|api/auth|_next|favicon\\.ico).*)'],
+  matcher: ['/((?!login|verificar|solana|download|api/auth|_next|favicon\\.ico).*)'],
 };

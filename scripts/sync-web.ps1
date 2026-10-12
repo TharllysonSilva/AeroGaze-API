@@ -4,7 +4,7 @@ $apiRepositoryRoot = Split-Path -Parent $PSScriptRoot
 $webPublishRoot = Join-Path $apiRepositoryRoot 'web'
 New-Item -ItemType Directory -Path $webPublishRoot -Force | Out-Null
 # Lista explícita: nunca copia .env, node_modules, .next, logs ou credenciais.
-foreach ($webDirectory in @('app','components','lib','scripts','styles','test')) {
+foreach ($webDirectory in @('app','components','lib','scripts','styles','test','public')) {
   Copy-Item -LiteralPath (Join-Path $webSourceRoot $webDirectory) -Destination $webPublishRoot -Recurse -Force
 }
 foreach ($webFile in @('package.json','package-lock.json','tsconfig.json','next.config.mjs','postcss.config.mjs','tailwind.config.ts','middleware.ts','Dockerfile','.dockerignore','.gitignore','.env.example','README.md')) {
