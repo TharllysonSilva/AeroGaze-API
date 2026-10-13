@@ -76,6 +76,8 @@ export default async function ComandoPage({ searchParams }: { searchParams: Prom
   const since = Date.now() - 24 * 3600 * 1000;
   const events24h = events.filter((e) => new Date(e.occurred_at).getTime() >= since).length;
   const anchored = batches.filter((b) => b.farm_id === farm.id && b.status === 'ancorado' && b.anchor_mode === 'evm').length;
+  const farmBatches = batches.filter((b) => b.farm_id === farm.id);
+  const mockBatches = farmBatches.filter((b) => b.anchor_mode === 'mock').length;
   const points = events.map(toPoint).filter((p): p is MapPoint => p !== null).slice(0, 60);
 
   const subtitle = farm.name;
@@ -151,7 +153,7 @@ export default async function ComandoPage({ searchParams }: { searchParams: Prom
           <KpiCard label="Alertas abertos" value={String(openAlerts.length).padStart(2, '0')} tone={openAlerts.length ? 'error' : 'primary'} hint={openAlerts.length ? 'Requer ação' : 'Nenhum alerta aberto'} />
           <KpiCard label="Tarefas em aberto" value={String(openTasks.length).padStart(2, '0')} tone={openTasks.length ? 'warning' : 'primary'} />
           <KpiCard label="Eventos nas últimas 24 h" value={events24h} tone="secondary" hint={`${events.length} no histórico recente`} />
-          <KpiCard label="Lotes de prova" value={`${anchored}/${batches.length}`} tone="primary" hint={batches.some((b) => b.anchor_mode === 'mock') ? 'Ancoragem simulada' : 'Ancorados na rede'} />
+          <KpiCard label="Lotes de prova" value={`${anchored}/${farmBatches.length}`} tone="primary" hint={`${anchored} na blockchain • ${mockBatches} em mock`} />
         </div>
 
         <div className="grid grid-cols-1 gap-8 xl:grid-cols-12">

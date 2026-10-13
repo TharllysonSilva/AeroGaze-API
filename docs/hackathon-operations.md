@@ -37,3 +37,13 @@ Web publicada em https://aerogaze-web.onrender.com: login, Comando, Telemetria, 
 Após publicar API `dbc16d1`, o usuário executou falha e reparo no AeroGaze Dev 0.2.0 do celular. API confirmou estado final `parada`, versão 8, eventos `1733fb24-ae98-41cc-9349-bad241301279` e `c6bbcc39-b018-4d2e-a91e-739a84c369e5` persistidos e tarefa `cce67074-c3a7-4c59-b987-4519dde042eb` concluída. Comando público respondeu 200 e exibiu o reparo e seu evento.
 
 Ambos entraram no [lote Base](https://aerogaze-web.onrender.com/verificar/bc783c4b-6592-4b06-8dc3-601bbe69961f), com valid/checked/matches=true e revoked=false. Os recibos Solana de [falha](https://aerogaze-web.onrender.com/solana/1733fb24-ae98-41cc-9349-bad241301279) e [reparo](https://aerogaze-web.onrender.com/solana/c6bbcc39-b018-4d2e-a91e-739a84c369e5) estão confirmados, checked/valid=true em Devnet. São recibos reais de operações explicitamente simuladas, sem alegação de execução física.
+
+## Entrega visual 0.3.0 — 13/10/2026
+
+Menu web corrigido e conferido no navegador autenticado em 1440px: borda direita da navegação e início do conteúdo em x=320, sem sobreposição. Navegação horizontal abaixo de 1024px. KPI distingue lotes EVM e mock.
+
+API publicada entrega indicadores fictícios de clorofila/confiança/nitrogênio e peso/pasto/atividade para os 12 animais. 75 testes/9 suítes passaram com Postgres/PostGIS exclusivamente de teste; build aprovado. Seis contas demo tiveram login 200 conferido; senhas ficam apenas em `.env.accounts.local`, excluído do Git e Docker.
+
+Android 0.3.0 recompõe as cinco referências no fluxo autenticado. 40 testes Flutter e ensaio Android QA completo passaram: inspeção offline/SQLite reaberto, ACK único, tarefa iniciada/concluída, prova mock conservada e botão de nova tarefa gerando uma inspeção e uma tarefa. Ensaio físico de falha/reparo/início de irrigação também passou.
+
+APK prod/release 0.3.0+3: 61.719.306 bytes; SHA-256 `8371993C4304A2D302D806A90A1E862DC01CF4DC92FFEC2C8D0EBF874EBBDF8C`. Download publicado em `/downloads/aerogaze-0.3.0.apk` pela página `/download`. Assinatura de desenvolvimento para instalação direta, sem credenciais embutidas.
