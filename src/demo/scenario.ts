@@ -58,6 +58,11 @@ export function scenarioTelemetry(state: Scenario, plots: any[], now = Date.now(
     return {lon:center.lon+Math.sin(time+phase)*spanLon*.12,lat:center.lat+Math.cos(time+phase)*spanLat*.12};
   };
   return {sampledAt:new Date(now).toISOString(),simulated:true,
+    crop:{simulated:true,chlorophyll:Math.round(Math.max(.2,Math.min(1,.82+(state.irrigation.moisture-31)*.004))*100)/100,
+      confidence:state.pest?92:96,nitrogenPpm:210,pathogen:state.pest?'Mancha de folha':'Sem ocorrência'},
+    animalStats:state.animals.map((a,i)=>({id:a.id,simulated:true,weightKg:510+i*8,pastureHours:Math.round((6.8-i*.1)*10)/10,
+      acidosisRisk:'Baixo',rumination:'Nominal',thermalStress:a.temperature>=39?'Moderado':'Baixo',
+      activity:Array.from({length:12},(_,n)=>({at:new Date(now-(11-n)*300000).toISOString(),value:Math.round(50+Math.sin(n/2+i)*15)}))})),
     points:[...state.animals.map((a,i)=>({id:a.id,kind:'animal',label:a.id,status:a.status,...position(a.plot,i)})),
       {id:'AERO-01',kind:'drone',label:'AERO-01',status:state.drone.status,...position(0,0,state.drone.status==='missao')},
       {id:'IRR-01',kind:'irrigacao',label:'IRR-01',status:state.irrigation.status,...position(1,1,false)}],

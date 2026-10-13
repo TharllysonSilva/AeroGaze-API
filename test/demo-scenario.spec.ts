@@ -18,3 +18,11 @@ test('telemetria fictícia sem talhão não inventa coordenadas; dados iguais no
   expect(t.simulated).toBe(true);expect(t.points[0].lat).toBeUndefined();
   expect(t).toEqual(scenarioTelemetry(s,[],1000000));expect(t.series).toHaveLength(12);
 });
+
+test('métricas ilustrativas compartilham identidade e acompanham o atendimento',()=>{
+  const s=initialScenario();const before=scenarioTelemetry(s,[],1000000);
+  expect(before.crop.simulated).toBe(true);expect(before.animalStats).toHaveLength(s.animals.length);
+  expect(before.animalStats[2]).toMatchObject({id:'BR-003',simulated:true,thermalStress:'Moderado'});
+  applyCommand(s,'animal.treat','BR-003');
+  expect(scenarioTelemetry(s,[],1000000).animalStats[2].thermalStress).toBe('Baixo');
+});
