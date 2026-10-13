@@ -1,5 +1,7 @@
 'use client';
 import { useState } from 'react';
+import { useGoogleMapsKey } from './MapProvider';
+import { GooglePlotMap } from './GooglePlotMap';
 import type { Plot } from '@/lib/types';
 
 export interface MapPoint {
@@ -16,7 +18,7 @@ const FILL = { primary: 'fill-primary-container', secondary: 'fill-secondary-con
  * Sem provedor de mapa e sem chave de API: serve para a demonstração e funciona offline.
  * Troque por Google Maps/MapLibre quando precisar de imagem de satélite.
  */
-export function PlotMap({ plots, points }: { plots: Plot[]; points: MapPoint[] }) {
+function SchematicPlotMap({ plots, points }: { plots: Plot[]; points: MapPoint[] }) {
   const [zoom,setZoom]=useState(1),[selected,setSelected]=useState('');
   const rings = plots.map((p) => p.boundary.coordinates[0]);
   const coords = [...rings.flat(), ...points.map((p) => [p.lon, p.lat])];
@@ -39,7 +41,7 @@ export function PlotMap({ plots, points }: { plots: Plot[]; points: MapPoint[] }
   const px = (lon: number) => offX + (lon - minLon) * kx * scale;
   const py = (lat: number) => offY + (maxLat - lat) * scale;
 
-  return (<div><div className="mb-3 flex gap-3"><button type="button" aria-label="Aproximar mapa" onClick={()=>setZoom(Math.min(zoom+.25,3))}>＋ Aproximar</button><button type="button" aria-label="Afastar mapa" onClick={()=>setZoom(Math.max(zoom-.25,1))}>− Afastar</button><button type="button" onClick={()=>{setZoom(1);setSelected('')}}>Restaurar</button></div>
+  return (<div className="schematic-map"><div className="mb-3 flex gap-3"><button type="button" aria-label="Aproximar mapa" onClick={()=>setZoom(Math.min(zoom+.25,3))}>＋ Aproximar</button><button type="button" aria-label="Afastar mapa" onClick={()=>setZoom(Math.max(zoom-.25,1))}>− Afastar</button><button type="button" onClick={()=>{setZoom(1);setSelected('')}}>Restaurar</button></div>
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-md bg-surface-lowest" role="img" aria-label="Mapa dos talhões e eventos recentes">
       <g transform={`translate(${W/2} ${H/2}) scale(${zoom}) translate(${-W/2} ${-H/2})`}>
       {plots.map((p, i) => {
@@ -68,4 +70,11 @@ export function PlotMap({ plots, points }: { plots: Plot[]; points: MapPoint[] }
     </svg>
     {selected&&<p role="status" className="mt-3 text-secondary">{selected}</p>}</div>
   );
+}
+
+export function PlotMap({plots,points}:{plots:Plot[];points:MapPoint[]}) {
+  const apiKey=useGoogleMapsKey();
+  const [unavailable,setUnavailable]=useState(false);
+  if(apiKey&&!unavailable)return <GooglePlotMap apiKey={apiKey} plots={plots} points={points} onUnavailable={()=>setUnavailable(true)}/>;
+  return <div><p className="geographic-map-notice">{unavailable?'Google Maps indisponível. Exibindo somente o esquema dos talhões.':'Mapa geográfico aguardando a chave Google. Abaixo está apenas o esquema dos talhões.'}</p>{unavailable&&<button onClick={()=>setUnavailable(false)}>Tentar carregar Google Maps</button>}<SchematicPlotMap plots={plots} points={points}/></div>;
 }

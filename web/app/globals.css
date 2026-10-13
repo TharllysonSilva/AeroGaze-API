@@ -69,8 +69,8 @@ body {
 .terminal-map.globe { background:linear-gradient(#0e1a16aa,#0e1a16aa),url('/scenario/globe.jpg') center/cover; }
 .terminal-map.thermal { background:linear-gradient(#111b17bb,#171d19cc),url('/scenario/satellite.jpg') center/cover; }
 .terminal-map svg { background:transparent!important; }
-.terminal-map svg path { fill:#8de68624; stroke:#a1ed94; }
-.terminal-map svg text { fill:#dbefdb; }
+.terminal-map .schematic-map svg path { fill:#8de68624; stroke:#a1ed94; }
+.terminal-map .schematic-map svg text { fill:#dbefdb; }
 .map-caption { display:flex; flex-direction:column; font:11px var(--font-mono); color:#9bf59a; padding:12px; background:#101a13bb; max-width:300px; margin-bottom:12px; }
 .map-layers { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
 .map-layers button[aria-pressed=true] { background:#94df85; color:#092011; }
@@ -112,3 +112,18 @@ body {
 .terminal-two-columns > * { min-width:0; }
 .terminal-history { overflow-wrap:anywhere; }
 @media(max-width:800px){ .terminal-dashboard,.terminal-two-columns{grid-template-columns:minmax(0,1fr)} }
+/* Real geographical maps replace decorative satellite/globe backgrounds. */
+.terminal-map,.terminal-map.globe,.terminal-map.thermal { background:#101713; }
+.google-geographic-canvas { height:460px; width:100%; border-radius:10px; background:#15251b; }
+.geographic-map-controls,.geographic-map-tools,.geographic-map-tools form { display:flex; flex-wrap:wrap; align-items:end; gap:8px; margin:12px 0; }
+.geographic-map-controls button[aria-pressed=true] { background:#94df85; color:#092011; }
+.geographic-map-tools label { color:#a5b39f; font-size:12px; min-width:0; max-width:100%; }
+.geographic-map-tools select { display:block; max-width:100%; margin-top:6px; }
+.geographic-map-tools input { width:120px; min-width:0; }
+.geographic-map-notice { color:#bdf4ff; font-size:12px; padding:10px 0; }
+.google-map-info { color:#17211a; background:white; font:13px sans-serif; padding:8px; }
+/* Do not apply terminal button and image styles to Google's attribution and controls. */
+.google-geographic-canvas button { border:initial; padding:initial; font:initial; letter-spacing:normal; text-transform:none; }
+.google-geographic-canvas button:hover:not(:disabled) { color:inherit; border-color:initial; }
+.google-geographic-canvas img { max-width:none; }
+@media(max-width:800px){.google-geographic-canvas{height:360px}}

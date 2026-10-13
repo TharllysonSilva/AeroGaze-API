@@ -1,3 +1,4 @@
+import { MapProvider } from '@/components/MapProvider';
 import { Sidebar } from '@/components/shell/Sidebar';
 import { navFor } from '@/lib/nav';
 import { requireSession } from '@/lib/session';
@@ -16,7 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen">
       <Sidebar items={items} userName={user.name} roleLabel={ROLE_LABEL[user.role] ?? user.role} />
-      <main className="app-content">{children}</main>
+      <main className="app-content"><MapProvider apiKey={process.env.GOOGLE_MAPS_API_KEY?.trim()??''}>{children}</MapProvider></main>
     </div>
   );
 }
