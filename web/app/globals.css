@@ -15,3 +15,15 @@ body {
 ::selection {
   background: rgb(var(--c-primary-container) / 0.35);
 }
+
+/* Keep the fixed navigation and content on the same measured width. */
+.app-content { min-width: 0; }
+.app-sidebar { display: flex; flex-direction: column; }
+@media (min-width: 1024px) {
+  .app-sidebar { position: fixed; inset: 0 auto 0 0; width: 20rem; overflow-y: auto; z-index: 30; }
+  .app-content { margin-left: 20rem; }
+}
+@media (max-width: 1023px) {
+  .app-sidebar nav { display: flex; overflow-x: auto; }
+  .app-sidebar nav a { flex-shrink: 0; }
+}

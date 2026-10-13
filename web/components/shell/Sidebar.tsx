@@ -9,7 +9,7 @@ import type { NavItem } from '@/lib/nav';
 export function Sidebar({ items, userName, roleLabel }: { items: Omit<NavItem, 'roles' | 'pending'>[]; userName: string; roleLabel: string }) {
   const pathname = usePathname();
   return (
-    <aside className="fixed inset-y-0 left-0 hidden w-sidebar flex-col bg-surface lg:flex">
+    <aside className="app-sidebar bg-surface">
       <div className="flex items-center gap-4 px-6 pb-8 pt-6">
         <Logo size={44} />
         <div>
