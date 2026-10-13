@@ -6,7 +6,7 @@ import { Icon } from '@/components/Icon';
 import { Logo } from '@/components/Logo';
 import type { NavItem } from '@/lib/nav';
 
-export function Sidebar({ items, userName, roleLabel }: { items: Omit<NavItem, 'roles' | 'pending'>[]; userName: string; roleLabel: string }) {
+export function Sidebar({ items, userName, roleLabel }: { items: Omit<NavItem, 'roles' | 'scenario'>[]; userName: string; roleLabel: string }) {
   const pathname = usePathname();
   return (
     <aside className="app-sidebar bg-surface">
@@ -14,13 +14,13 @@ export function Sidebar({ items, userName, roleLabel }: { items: Omit<NavItem, '
         <Logo size={44} />
         <div>
           <div className="font-display text-title-lg text-primary">AeroGaze AI</div>
-          <div className="font-display text-label-sm uppercase text-on-surface-variant">Centro de comando</div>
+          <div className="font-display text-label-sm uppercase text-on-surface-variant">Terminal operacional</div>
         </div>
       </div>
 
       <nav aria-label="Principal" className="flex-1">
-        {items.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + '/');
+        {items.filter(item=>!['/galeria','/termica','/timeline'].includes(item.href)).map((item) => {
+          const active = pathname === item.href || pathname.startsWith(item.href + '/') || (item.href==='/telemetria'&&['/galeria','/termica','/timeline'].includes(pathname));
           return (
             <Link
               key={item.href}
@@ -39,7 +39,7 @@ export function Sidebar({ items, userName, roleLabel }: { items: Omit<NavItem, '
         })}
       </nav>
 
-      <div className="px-6 pb-6">
+      <div className="px-6 pb-6"><Link href="/comando#tarefas" className="mb-5 block rounded-md bg-primary-container p-4 text-center font-display text-label-md uppercase text-on-primary">Tarefas e missões</Link><Link href="/download" className="mb-5 block text-center text-body-sm text-secondary">Baixar app Android ↗</Link>
         <div className="rounded-md bg-surface-low p-4">
           <div className="font-display text-title-md text-on-surface">{userName}</div>
           <div className="font-display text-label-sm uppercase text-on-surface-variant">{roleLabel}</div>

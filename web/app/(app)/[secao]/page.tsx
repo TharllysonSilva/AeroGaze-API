@@ -7,10 +7,10 @@ import { apiGet } from '@/lib/api';
 import { ScenarioConsole } from '@/components/ScenarioConsole';
 import type { Farm } from '@/lib/types';
 
-/** Seções do menu que ainda dependem de módulos da API. Explica o que falta, sem fingir dados. */
+/** Terminais do cenário compartilhado; telemetria e imagens identificadas como fictícias. */
 export default async function SecaoPage({ params }: { params: Promise<{ secao: string }> }) {
   const { secao } = await params;
-  const item = NAV.find((n) => n.href === `/${secao}` && n.pending);
+  const item = NAV.find((n) => n.href === `/${secao}` && n.scenario);
   if (!item) notFound();
 
   const user = await requireSession();
@@ -23,8 +23,8 @@ export default async function SecaoPage({ params }: { params: Promise<{ secao: s
   return (
     <>
       <Topbar title={item.label} subtitle={farm.name} />
-      <div className="px-10 pb-10">
-        <ScenarioConsole key={farm.id} initial={scenario} farmId={farm.id} section={secao} canAct={user.role!=='auditor'}/>
+      <div className="pb-10">
+        <ScenarioConsole key={farm.id} initial={scenario} farmId={farm.id} farmName={farm.name} user={{name:user.name,role:user.role}} section={secao} canAct={user.role!=='auditor'}/>
       </div>
     </>
   );

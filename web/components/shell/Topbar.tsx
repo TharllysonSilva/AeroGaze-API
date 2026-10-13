@@ -13,7 +13,7 @@ async function apiStatus(): Promise<'ok' | 'down'> {
 export async function Topbar({ title, subtitle }: { title: string; subtitle?: string }) {
   const status = await apiStatus();
   return (
-    <header className="flex h-topbar items-center justify-between gap-6 px-10">
+    <header className="terminal-topbar flex h-topbar items-center justify-between gap-6 px-10">
       <div>
         <h1 className="font-display text-display-md uppercase text-on-surface">{title}</h1>
         {subtitle && <p className="font-display text-label-md uppercase text-on-surface-variant">{subtitle}</p>}

@@ -144,80 +144,18 @@ export default async function ComandoPage({ searchParams }: { searchParams: Prom
     );
   }
 
-  return (
-    <>
-      <Topbar title="Comando" subtitle={subtitle} />
-      {farmSwitch}
-      <div className="space-y-8 px-10 pb-10">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4">
-          <KpiCard label="Alertas abertos" value={String(openAlerts.length).padStart(2, '0')} tone={openAlerts.length ? 'error' : 'primary'} hint={openAlerts.length ? 'Requer ação' : 'Nenhum alerta aberto'} />
-          <KpiCard label="Tarefas em aberto" value={String(openTasks.length).padStart(2, '0')} tone={openTasks.length ? 'warning' : 'primary'} />
-          <KpiCard label="Eventos nas últimas 24 h" value={events24h} tone="secondary" hint={`${events.length} no histórico recente`} />
-          <KpiCard label="Lotes de prova" value={`${anchored}/${farmBatches.length}`} tone="primary" hint={`${anchored} na blockchain • ${mockBatches} em mock`} />
-        </div>
-
-        <div className="grid grid-cols-1 gap-8 xl:grid-cols-12">
-          {scenario && <div className="xl:col-span-12"><ScenarioConsole key={farm.id} initial={scenario} farmId={farm.id} section="comando" canAct={canActOnTasks}/></div>}
-          <Card title="Talhões e eventos recentes" className="xl:col-span-8">
-            <PlotMap plots={plots} points={points} />
-            <div className="mt-4 flex flex-wrap gap-4 text-body-sm text-on-surface-variant">
-              <span><i className="mr-2 inline-block h-2 w-2 rounded-dot bg-error align-middle" />Achado da IA</span>
-              <span><i className="mr-2 inline-block h-2 w-2 rounded-dot bg-warning align-middle" />Inconclusivo</span>
-              <span><i className="mr-2 inline-block h-2 w-2 rounded-dot bg-secondary-container align-middle" />Posição de ativo</span>
-              <span><i className="mr-2 inline-block h-2 w-2 rounded-dot bg-primary-container align-middle" />Saudável</span>
-            </div>
-          </Card>
-
-          <Card title="Alertas operacionais" className="xl:col-span-4" action={<Chip tone={openAlerts.length ? 'err' : 'ok'}>{openAlerts.length} abertos</Chip>}>
-            {openAlerts.length === 0 ? (
-              <EmptyState title="Tudo em ordem">Nenhum alerta aberto nesta fazenda.</EmptyState>
-            ) : (
-              <ul className="space-y-3">
-                {openAlerts.slice(0, 6).map((a) => (
-                  <li key={a.id} className={`rounded-md border-l-[3px] bg-surface-lowest p-4 ${RAIL[a.severity]}`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="font-display text-title-md text-on-surface">{a.title}</div>
-                      <span className="shrink-0 text-body-sm text-on-surface-variant">{timeAgo(a.created_at)}</span>
-                    </div>
-                    {typeof a.details?.confidence === 'number' && (
-                      <p className="mt-1 text-body-sm text-on-surface-variant">
-                        Confiança {Math.round(a.details.confidence * 100)}% · modelo {a.details.modelVersion ?? 'n/d'}
-                      </p>
-                    )}
-                    {canActOnAlerts && (
-                      <form action={setAlertStatus} className="mt-3 flex gap-2">
-                        <input type="hidden" name="id" value={a.id} />
-                        <button name="status" value="reconhecido" type="submit" className="rounded-md border border-secondary/15 px-3 py-2 font-display text-label-md uppercase text-secondary hover:shadow-glow-secondary-hover">Reconhecer</button>
-                        <button name="status" value="resolvido" type="submit" className="rounded-md bg-primary-container px-3 py-2 font-display text-label-md uppercase text-on-primary hover:shadow-glow-primary-hover">Resolver</button>
-                      </form>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 gap-8 xl:grid-cols-12">
-          <div className="xl:col-span-7">{tasksCard}</div>
-          <Card title="Log de eventos recentes" className="xl:col-span-5">
-            {events.length === 0 ? (
-              <EmptyState title="Sem eventos ainda">Os eventos aparecem aqui assim que o app sincronizar.</EmptyState>
-            ) : (
-              <ul className="space-y-3 font-mono text-body-sm">
-                {events.slice(0, 8).map((e) => (
-                  <li key={e.id} className="flex gap-3">
-                    <span className="shrink-0 text-primary-container">{new Date(e.occurred_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                    <span className="text-on-surface-variant">
-                      {EVENT_LABEL[e.type] ?? e.type} · <span className="text-on-surface">{eventSummary(e)}</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Card>
-        </div>
-      </div>
-    </>
-  );
+  return <>
+    <Topbar title="Centro de Comando" subtitle={subtitle}/>
+    {farmSwitch}
+    {scenario && <ScenarioConsole key={farm.id} initial={scenario} farmId={farm.id} farmName={farm.name} user={{name:user.name,role:user.role}} section="comando" canAct={canActOnTasks}/>}
+    <div className="terminal-workspace"><div className="terminal-kpis">
+      <KpiCard label="Alertas abertos" value={openAlerts.length}/><KpiCard label="Tarefas em aberto" value={openTasks.length}/><KpiCard label="Eventos em 24h" value={events24h}/><KpiCard label="Lotes de prova" value={`${anchored}/${farmBatches.length}`} hint={`${anchored} na blockchain • ${mockBatches} em mock`}/>
+    </div><div id="tarefas">{tasksCard}</div>
+    <Card title="Alertas registrados pela API">
+      {openAlerts.length===0?<p>Nenhum alerta aberto.</p>:openAlerts.map(a=><article key={a.id} className="terminal-feedback">
+        <h3>{a.title}</h3><p>{a.severity} • {timeAgo(a.created_at)}</p>
+        {canActOnAlerts&&<form action={setAlertStatus} className="terminal-actions"><input type="hidden" name="id" value={a.id}/><button name="status" value="reconhecido">Reconhecer</button><button name="status" value="resolvido">Resolver</button></form>}
+      </article>)}
+    </Card></div>
+  </>;
 }
