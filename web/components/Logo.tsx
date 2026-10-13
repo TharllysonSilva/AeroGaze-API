@@ -3,7 +3,6 @@ export function Logo({ size = 40 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 512 512" role="img" aria-label="AeroGaze">
       <rect width="512" height="512" rx="112" fill="#0F1512" />
-      <rect x="3" y="3" width="506" height="506" rx="110" fill="none" stroke="#2B3B31" strokeWidth="7" />
       <path d="M136 420 L256 175 L376 420" fill="none" stroke="#9BF59A" strokeWidth="46" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M196 362 C220 305 290 295 330 322 C312 372 246 392 196 362 Z" fill="#9BF59A" stroke="#0F1512" strokeWidth="7" strokeLinejoin="round" />
       <path d="M196 362 L330 322" stroke="#0F1512" strokeWidth="5" strokeLinecap="round" />
