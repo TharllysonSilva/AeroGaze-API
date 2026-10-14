@@ -41,7 +41,7 @@ function SchematicPlotMap({ plots, points }: { plots: Plot[]; points: MapPoint[]
   const px = (lon: number) => offX + (lon - minLon) * kx * scale;
   const py = (lat: number) => offY + (maxLat - lat) * scale;
 
-  return (<div className="schematic-map"><div className="mb-3 flex gap-3"><button type="button" aria-label="Aproximar mapa" onClick={()=>setZoom(Math.min(zoom+.25,3))}>＋ Aproximar</button><button type="button" aria-label="Afastar mapa" onClick={()=>setZoom(Math.max(zoom-.25,1))}>− Afastar</button><button type="button" onClick={()=>{setZoom(1);setSelected('')}}>Restaurar</button></div>
+  return (<div className="schematic-map"><div className="schematic-map-controls mb-3 flex"><button type="button" aria-label="Aproximar mapa" onClick={()=>setZoom(Math.min(zoom+.25,3))}>＋ Aproximar</button><button type="button" aria-label="Afastar mapa" onClick={()=>setZoom(Math.max(zoom-.25,1))}>− Afastar</button><button type="button" onClick={()=>{setZoom(1);setSelected('')}}>Restaurar</button></div>
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-md bg-surface-lowest" role="img" aria-label="Mapa dos talhões e eventos recentes">
       <g transform={`translate(${W/2} ${H/2}) scale(${zoom}) translate(${-W/2} ${-H/2})`}>
       {plots.map((p, i) => {

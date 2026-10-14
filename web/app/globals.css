@@ -15,6 +15,7 @@ body {
 ::selection {
   background: rgb(var(--c-primary-container) / 0.35);
 }
+:root { --control-gap: 4px; }
 
 /* Keep the fixed navigation and content on the same measured width. */
 .app-content { min-width: 0; }
@@ -137,3 +138,9 @@ body {
 .google-geographic-canvas button:hover:not(:disabled) { color:inherit; border-color:initial; }
 .google-geographic-canvas img { max-width:none; }
 @media(max-width:800px){.google-geographic-canvas{height:360px}}
+/* One spacing value for adjacent application controls at every breakpoint. */
+.terminal-toolbar,.terminal-feed-tabs,.terminal-actions,.terminal-filter,
+.map-layers,.schematic-map-controls,.geographic-map-controls,
+.geographic-map-tools,.geographic-map-tools form {
+  gap:var(--control-gap);
+}
